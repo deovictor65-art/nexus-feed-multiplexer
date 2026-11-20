@@ -260,8 +260,20 @@ class FeedMultiplexer:
     # =========================================================================
 
     async def _multiplexer_poll_loop(self):
-        """Continuous ingestion polling loop across all active venues."""
+        """Continuous ingestion polling loop across all active venues with self-healing watchdog."""
+        loop_counter = 0
         while self._running:
+            loop_counter += 1
+
+            # Self-healing watchdog: every 15 cycles (~15s), attempt to reconnect any dropped handlers
+            if loop_counter % 15 == 0:
+                for h in self.handlers.values():
+                    if not h.is_connected:
+                        try:
+                            await h.connect()
+                        except Exception as reconn_err:
+                            logger.debug(f"Watchdog reconnection attempt for {h.venue_config.name} notice: {reconn_err}")
+
             try:
                 poll_tasks = []
                 for h in self.handlers.values():
