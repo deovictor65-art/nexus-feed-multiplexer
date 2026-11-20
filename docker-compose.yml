@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  nexus-feed-multiplexer:
+    build: .
+    container_name: nexus-feed-multiplexer
+    restart: unless-stopped
+    environment:
+      - IBKR_HOST=127.0.0.1
+      - IBKR_PORT=4002
+      - IBKR_ACCOUNT_ID=U12345678
+      - IBKR_DATA_TYPE=DELAYED
+    volumes:
+      - .:/app
